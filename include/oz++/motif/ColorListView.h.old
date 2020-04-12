@@ -1,0 +1,177 @@
+/******************************************************************************
+ *
+ * Copyright (c) 2015 Antillia.com TOSHIYUKI ARAI. ALL RIGHTS RESERVED.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions, and the following disclaimer.
+ *
+ * 2. The name of the author may not be used to endorse or promote products
+ *    derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ *  ColorListView.h
+ *
+ *****************************************************************************/
+
+#pragma once
+
+#include <oz++/motif/ApplicationView.h>
+#include <oz++/motif/ScrolledDrawingArea.h>
+#include <oz++/motif/Label.h>
+
+#include <oz++/motif/RenderTable.h>
+#include <oz++/motif/DC.h>
+#include <oz++/motif/Color.h>
+#include <oz++/motif/NamedColor.h>
+#include <oz++/motif/Pixelmap.h>
+#include <oz++/motif/StrDef.h>
+
+namespace OZ {
+
+class ColorListView :public ScrolledDrawingArea {
+private:
+  static const int ITEM_WIDTH = 80;
+  static const int ITEM_HEIGHT = 20;
+  static const int PADDING     = 0;
+  
+private:
+  size_t      size; 
+  Label**     colors;
+
+  Pixelmap**  pixelmaps;
+  NamedColor* namedColor;
+  SmartPtr<RenderTable>       rtable;  
+
+public:
+  ColorListView(View* parent, const char* name, Args& args)
+  :ScrolledDrawingArea(parent, name, args.set(XmNscrollingPolicy, XmAUTOMATIC)
+                                          .set(XmNscrollBarDisplayPolicy, XmVARIABLE)),
+  size(0),
+  colors(NULL),
+  pixelmaps(NULL),
+  namedColor(NULL)
+  {
+    int highlightThickness = 2;
+    if (args.has(XmNhighlightThickness)) {
+      int thickness = (int)args.get(XmNhighlightThickness);
+      if (thickness >0  && thickness <=4) {
+        highlightThickness = thickness;
+      }  
+    }
+    
+    bool showColorName = false;
+    if (args.has(XmNshowColorName)) {
+       showColorName = (bool)args.get(XmNshowColorName);
+    }
+
+    Args a;
+    //a.set(XmNorientation, 
+    
+    Display* display = getDisplay();
+    namedColor = new NamedColor(display);
+    size = namedColor -> getSize();
+
+    colors = new Label*[size];
+
+    pixelmaps = new Pixelmap*[size];
+    Color color(display);
+      
+    Pixel white = color.whitePixel();
+
+    int theight = PADDING*2 + (ITEM_HEIGHT)*size ; 
+    DrawingArea* drawinga = getDrawingArea();
+    drawinga -> set(XmNheight, theight);
+    drawinga -> set(XmNbackground, white);
+    
+    Args ar;
+    int pos    = 0;
+
+   // Create an instance of RenderTable based on a Rendition object.
+    ar.reset();
+    ar.set(XmNfontSize, 11);
+    ar.set(XmNfontName, "Courier");
+    rtable = new RenderTable(drawinga, "", ar);
+
+    int width  = ITEM_WIDTH;
+    int height = ITEM_HEIGHT;
+    if (showColorName) {
+      height += 2;
+    }
+    for (size_t i = 0; i < size; i++) {
+      Pixel pixel = namedColor -> getNth(i);
+      pixelmaps[i] = new Pixelmap(display, width, height);
+
+      char value[128];
+      sprintf(value, "%06x", (unsigned int)pixel);
+      //printf("%d pixel=%lx name=%s\n", i, pixel, namedColor -> getName(i));
+      CompoundString colorName(value);
+
+      ar.reset();
+      ar.set(XmNwidth, width);
+      ar.set(XmNheight, height);
+      ar.set(XmNx, 0);
+      ar.set(XmNy, (height+2)*i);
+      //pos += (height+2);
+      DC* back = new DC(display, pixelmaps[i]->get());
+
+      back -> setForeground(pixel);
+      back -> fillRectangle(0, 0, width, height);
+      ar.set(XmNshadowThickness, 0);
+      if (showColorName) {
+        ar.set(XmNlabelType,  XmPIXMAP_AND_STRING);
+        ar.set(XmNalignment, XmALIGNMENT_END); 
+        ar.set(XmNlabelString, colorName);
+      } else {
+        ar.set(XmNlabelType, XmPIXMAP);
+      }
+      ar.set(XmNpixmapPlacement,  XmPIXMAP_LEFT); 
+      ar.set(XmNtraversalOn, True);
+      ar.set(XmNhighlightOnEnter, True);
+      ar.set(XmNshadowThickness, 1);
+      ar.set(XmNhighlightThickness, highlightThickness); //2015/02/08 1);  
+    
+      ar.set(XmNlabelPixmap, pixelmaps[i]->get());
+      ar.set(XmNrecomputeSize, True);
+
+      colors[i] =new Label(drawinga, "", ar);
+      colors[i] -> set(XmNrenderTable, rtable);    
+      delete back;
+    }
+  }
+
+  ~ColorListView()
+  {
+    for(size_t i = 0; i<size; i++) {
+      delete colors[i];
+      delete pixelmaps[i];
+    }
+    delete [] colors;
+    delete [] pixelmaps;
+    delete namedColor;
+  }
+
+  virtual void addEventHandler(EventMask mask, CommonObject* object, 
+      Handler eventHandler, XtPointer data)
+  {
+    for(size_t i = 0; i<size; i++) {
+      colors[i] -> addEventHandler(mask, object, eventHandler, 
+         (XtPointer)namedColor -> getNth(i));
+    }
+  }
+};
+}
+

@@ -1,0 +1,18 @@
+2014/03/01 10:14:11 DEBUG: テスト開始
+2014/03/01 10:14:11 DEBUG: MbString#MbString(const char* string='NFV: ネットワーク機能仮想化')
+2014/03/01 10:14:11 DEBUG: MbString#MbString(const char* string='OpenFlow: オープンフロー')
+2014/03/01 10:14:11 DEBUG: MbString#MbString(const MbString& string='NFV: ネットワーク機能仮想化')
+2014/03/01 10:14:11 DEBUG: WcString#WcString(const wchar_t* string='Goodbye world. さようなら世界')
+2014/03/01 10:14:11 DEBUG: WcString#WcString(const wchar_t* string='Hello world. こんにちは世界')
+2014/03/01 10:14:11 DEBUG: WcString#WcString(const WcString& string='Goodbye world. さようなら世界')
+2014/03/01 10:14:11 ERR: Exception: NULL string
+2014/03/01 10:14:11 DEBUG: テスト終了
+2014/12/23 08:52:01 DEBUG: テスト開始
+2014/12/23 08:52:01 DEBUG: MbString#MbString(const char* string='NFV: ネットワーク機能仮想化')
+2014/12/23 08:52:01 DEBUG: MbString#MbString(const char* string='OpenFlow: オープンフロー')
+2014/12/23 08:52:01 DEBUG: MbString#MbString(const MbString& string='NFV: ネットワーク機能仮想化')
+2014/12/23 08:52:01 DEBUG: WcString#WcString(const wchar_t* string='Goodbye world. さようなら世界')
+2014/12/23 08:52:01 DEBUG: WcString#WcString(const wchar_t* string='Hello world. こんにちは世界')
+2014/12/23 08:52:01 DEBUG: WcString#WcString(const WcString& string='Goodbye world. さようなら世界')
+2014/12/23 08:52:01 ERR: Exception: NULL string
+2014/12/23 08:52:01 DEBUG: テスト終了
